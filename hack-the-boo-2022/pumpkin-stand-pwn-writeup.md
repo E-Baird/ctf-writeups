@@ -77,9 +77,36 @@ Add one more again, and you get this nice number...
 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
 ```
 
-which is equal to -2,147,483,648???
+which is equal to -2147483648???
 
-Yep. Adding one more to the int when it was already at its max value has caused us to accidentally carry into the top bit, which determines the positive or negative sign. Now the computer interprets this as an aboslutely huge negative number, instead of an absolutely huge negative number.
+Yep. Adding one more to the int when it was already at its max value has caused us to accidentally carry into the top bit, which determines the positive or negative sign. Now the computer interprets this as a huge negative number instead of a huge positive number.
+
+Here's a little C program to demonstrate this:
+
+```C
+#include<stdio.h>
+
+int main() {
+	int test = 2147483646;
+	printf("big?: %d\n",test);
+
+	test ++;
+	printf("still big?: %d\n",test);
+	
+	test ++;
+	printf("smol?: %d\n",test);
+
+	return 0;
+}
+```
+
+If we run it, here's what we get:
+
+```
+big?: 2147483646
+still big?: 2147483647
+smol?: -2147483648
+```
 
 Note that this works in reverse too. If you had a huge negative number, and subtracted from it, you'd suddenly flip up to a huge positive number. So maybe if we can get our account balance to go waaaay below 0, we can trick the system into thinking we have a huge positive balance. This version is called an underflow.
 
