@@ -18,7 +18,7 @@ For this challenge, we are given a pcap file with network traffic that occured d
 
 First, I opened the PCAP in Wireshark and filtered down to only HTTP requests. The early traffic looks innocuous, just retrieving images and HTML documents.
 
-![http traffic data](http-traffic-1.png)
+![http traffic data](assets/http-traffic-1.png)
 
 However, later on in the traffic, we can see the breach occur. First, we see evidence of a command injection in packet 416. The attacker hits an endpoint with a GET request, and a query string of `cmd=whoami`:
 
@@ -26,7 +26,7 @@ However, later on in the traffic, we can see the breach occur. First, we see evi
 
 In the server response, we can see that this command was executed on the victim's machine, and even worse, the result of the `whoami` command... this process is running as `root`!
 
-![root](root.png)
+![root](assets/root.png)
 
 After this, things devolve quickly. In packet 436, a command is sent to install Socat, a Linux tool used for working with sockets. Finally, in packet 464, the attacker sends the following command:
 
@@ -38,13 +38,13 @@ This is a super basic reverse shell. The attacker has presumably set up a listen
 
 ## The Solution
 
-At this point, I spun my wheels for a bit. Eventually, I realized that because the attacker now has a shell, there would of course be no further HTTP requests. Everything from this point on will just be TCP going to and from 192.168.1.180:1337. I removed the Wireshark filter and found that there were a bunch of messages sent after the creation of the reverse shell. In the packets that go `1337->45416`, we can see commands that the attacker is typing into the victim's shell. In packets going the other way, we can see the shell's output. In packet 500, the attacker sends a large command with `echo` and `socat`.
+At this point, I spun my wheels for a bit. Eventually with some help from my teammates, I realized that because the attacker now has a shell, there would of course be no further HTTP requests. Everything from this point on will just be TCP going to and from 192.168.1.180:1337. I removed the Wireshark filter and found that there were a bunch of messages sent after the creation of the reverse shell. In the packets that go `1337->45416`, we can see commands that the attacker is typing into the victim's shell. In packets going the other way, we can see the shell's output. In packet 500, the attacker sends a large command with `echo` and `socat`.
 
-![flag command](flag.png)
+![flag command](assets/flag.png)
 
 This could be interesting. By using Wireshark's Trace feature, we get a nice view of the entire conversation:
 
-![socat command](socat-command.png)
+![socat command](assets/socat-command.png)
 
 Among other things, it looks like the attacker is sending over a backwards base64-encoded string, and then reversing it once it's on the victim's machine. This was likely done to simulate the kinds of code obfuscation that would happen when a real attacker attempts to do something like getting malware past the victim's antivirus.
 
